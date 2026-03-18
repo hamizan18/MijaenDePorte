@@ -15,40 +15,40 @@ function App() {
   useEffect(() => {
     getNotes();
   }, []);
+  
+  async function uploadFile(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "ml_default");
+
+    const rest = await fetch(
+      "https://api.cloudinary.com/v1_1/dquvibhr0/upload",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    const data = await rest.json();
+    console.log(data);
+
+    return data.secure_url;
+  }
 
   async function addNote() {
     let imageUrl = null;
 
     if (image) {
-      const fileName = Date.now() + "-" + image.name;
-
-      const {error: uploadError } = await supabase
-        .storage
-        .from('images')
-        .upload(fileName, image);
-
-      if (uploadError) {
-        console.log("Upload error:". uploadError);
-        return;
-      }
-
-      const { data } = supabase 
-        .storage
-        .from("images")
-        .getPublicUrl(fileName);
-
-      imageUrl = data.publicUrl;
+      imagerUrl = await uploadFile(image);
     }
 
-    const { error } = await supabase
-      .from("notes")
-      .insert([
-        {
-          title: title,
-          content: content,
-          image_url: imageUrl
-        }
-      ]);
+    await supabase.from("notes").insert([
+      {
+        title,
+        content,
+        image_url: imageUrl,
+      },
+    ]);
 
     if (error) {
       console.log(error);
@@ -62,13 +62,15 @@ function App() {
     setNotes(data);
   }
 
+
   return (
 <>
 
-<input
+<input 
   type="file"
-  onChange={(e) => setImage(e.target.files[0])}
-/>
+  onChange={(e) => 
+  uploadFile(e.target.files[0])} 
+  />
 
     <input
   type="text"
