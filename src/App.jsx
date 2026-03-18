@@ -9,6 +9,8 @@ function App() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
 
+  // mau ngetes push aja
+
   useEffect(() => {
     getNotes();
   }, []);
